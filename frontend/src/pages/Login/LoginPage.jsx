@@ -1,33 +1,61 @@
 import { useState } from "react";
-import { useNavigate, NavLink } from "react-router-dom";
+import { useNavigate, NavLink, Link } from "react-router-dom";
 import { login } from "../../services/authentication";
+import { validateLoginForm } from "../../validators/validation";
+
+//TODO: 
+// A logged in user can still access this page by typing the route in the URL
+// It'll be better for UX if it were handled
 
 export const LoginPage = ({ onLogin, setToken }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const [validationMsg, setValidationMsg] = useState({});
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     try {
-      const data = await login(email, password);
-      window.localStorage.setItem("token", data.token);
-      onLogin(data.token);
-      setToken(data.token);
+      const validationError = validateLoginForm(email, password);
+      if (validationError) {
+        setValidationMsg(validationError);
+        return;
+      }
+    } catch (error) {
+      setError("An unexpected error occured. Please try again");
+    }
+
+    try {
+      await performLogin(email, password);
       navigate("/");
     } catch (err) {
-      console.error(err);
-      setError("Invalid email or password");
-      alert("Please try again");
+      //TODO: Improve upon error handling
+      setError(err.message);
     }
-  };
-  const handleEmailChange = (event) => {
-    setEmail(event.target.value);
+    // }
   };
 
-  const handlePasswordChange = (event) => {
-    setPassword(event.target.value);
+  const performLogin = async (email, password) => {
+    try {
+      const data = await login(email, password);
+      window.localStorage.setItem("token", data.token); //This is also redundant
+      setToken(data.token); //This is possibly redundant
+      onLogin(data.token);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleEmailChange = (e) => {
+    e.preventDefault();
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e) => {
+    e.preventDefault();
+    setPassword(e.target.value);
   };
 
   return (
@@ -39,7 +67,7 @@ export const LoginPage = ({ onLogin, setToken }) => {
             className="flex items-center mb-6 text-5xl font-kanit font-bold italic text-primary-500 hover:text-primary-500"
           >
             <img
-              class="w-16 mb-1.5 -mr-0.5"
+              className="w-16 mb-1.5 -mr-0.5"
               src="../../../src/assets/recipeasyLogo.svg"
               alt="logo"
             />
@@ -53,7 +81,7 @@ export const LoginPage = ({ onLogin, setToken }) => {
               <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label
-                    for="email"
+                    htmlFor="email"
                     className="block mb-2 text-sm text-left font-light text-gray-600"
                   >
                     Your email
@@ -63,14 +91,17 @@ export const LoginPage = ({ onLogin, setToken }) => {
                     name="email"
                     id="email"
                     className="outline-none focus:ring-1 bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"
-                    placeholder="name@company.com"
+                    placeholder="name@domain.com"
                     value={email}
                     onChange={handleEmailChange}
                   />
+                  {validationMsg.email && (
+                    <span className="text-red-500">{validationMsg.email}.</span>
+                  )}
                 </div>
                 <div>
                   <label
-                    for="password"
+                    htmlFor="password"
                     className="block mb-2 text-sm text-left font-light text-gray-600"
                   >
                     Password
@@ -84,6 +115,12 @@ export const LoginPage = ({ onLogin, setToken }) => {
                     value={password}
                     onChange={handlePasswordChange}
                   />
+                  {/* Maybe shouldn't have this feature */}
+                  {validationMsg.password && (
+                    <span className="text-red-500">
+                      {validationMsg.password}.
+                    </span>
+                  )}
                 </div>
                 <button
                   type="submit"
@@ -91,24 +128,25 @@ export const LoginPage = ({ onLogin, setToken }) => {
                 >
                   Log in
                 </button>
+                {error && <span className="text-red-500">{error}</span>}
                 <p className="text-sm font-light text-gray-500">
                   Don’t have an account yet?{" "}
-                  <a
-                    href="/signup"
+                  <Link
+                    to="/signup"
                     className="font-medium text-primary-500 hover:text-rose-400"
                   >
                     Sign up
-                  </a>
+                  </Link>
                 </p>
               </form>
             </div>
           </div>
-          <a
-            href="/"
+          <Link
+            to="/"
             className="font-medium text-sm text-primary-500 hover:text-rose-400 pt-5"
           >
             ← Back to homepage
-          </a>
+          </Link>
         </div>
       </section>
     </>

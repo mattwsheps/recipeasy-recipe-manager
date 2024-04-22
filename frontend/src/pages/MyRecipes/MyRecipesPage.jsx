@@ -14,6 +14,7 @@ export const MyRecipesPage = ({
   setRecipeData,
 }) => {
   const navigate = useNavigate();
+  //TODO: There might be a bug with useFetchRecipes
   const { recipes, loading, error, fetchRecipes } = useFetchRecipes(
     token,
     setToken
@@ -29,13 +30,14 @@ export const MyRecipesPage = ({
     } else if (loading) {
       return <p aria-label="Loading message">Loading ...</p>;
     } else if (error) {
+      console.log("Error occured whilst retrieving recipe")
       navigate("/login");
       // return <p>Error: {error.message}</p>;
     } else if (
       (!loading && !error && recipes === undefined) ||
       recipes.length === 0
     ) {
-      return <p aria-label="Empty Recipes"> No recipes found</p>;
+      return <p aria-label="Empty Recipes"> No recipes found.</p>;
     } else {
       return recipes.map((recipe) => (
         <RecipeCard recipe={recipe} key={recipe._id} />
@@ -47,9 +49,9 @@ export const MyRecipesPage = ({
     <div className="flex flex-col items-center bg-tertiary-500">
       <div className="flex justify-center bg-white shadow-md">
         <div className="flex flex-col items-center w-1/2 py-10 px-20">
-          <h1 class="flex items-center mb-6 text-5xl font-kanit font-bold italic text-primary-500">
+          <h1 className="flex items-center mb-6 text-5xl font-kanit font-bold italic text-primary-500">
             <img
-              class="w-16 mb-1.5 -mr-0.5"
+              className="w-16 mb-1.5 -mr-0.5"
               src="../../../src/assets/recipeasyLogo.svg"
               alt="logo"
             />
